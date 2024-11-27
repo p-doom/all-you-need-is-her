@@ -103,7 +103,6 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
     with open('log.jsonl', 'w') as log_file:
         for i in range(start_iteration, cfg.agent.policy.total_iterations):
 
-            log.info('Iteration #%d: preparing goals...', i)
             
             conjectures = final_goals_formatted
             log.info('Skipping conjecture generation, using %d final goals', len(conjectures))

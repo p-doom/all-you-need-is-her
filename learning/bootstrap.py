@@ -61,6 +61,10 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
     with open(os.path.join(os.path.dirname(__file__), 'theories', cfg.theory.name + '.p')) as f:
         theory = f.read()
 
+    difficulty_buckets = sorted([list(cfg.difficulty_buckets[i].items())[0]
+                                 for i in range(len(cfg.difficulty_buckets))],
+                                key=lambda kv: kv[1])
+    
     premises = cfg.theory.premises
 
     d = peano.PyDerivation()
@@ -129,7 +133,7 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
             # Add output of proving final goals to the list of proven conjectures
             student_results.extend(student_results_final)
 
-            mean_hard_sol_log_prob = sum(success_logprobs)/len(success_logprobs) if success_logprobs else 0
+            mean_hard_sol_log_prob = np.mean(success_logprobs) if success_logprobs else 0
             # 3b- Classify problems into easy/hard.
             proven_conjectures_iteration = []
             for student_result in student_results:
@@ -151,6 +155,7 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
 
             if cfg.train_policy_on_hindsight_examples:
                 seen_hindsight_goals = set()
+                hindsight_log_probs = []
                 for h in student_result.hindsight_examples:
                     if h.goal not in seen_hindsight_goals:
                         outcome = 'hard'
@@ -159,7 +164,13 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
                             examples.append(f'Conj:({outcome}) ' + d.elaborate(student_result.problem))
                         examples.extend(h.examples)
                         seen_hindsight_goals.add(h.goal)
+                        hindsight_log_probs.append(h.logprob)
 
+                thresholds = [np.percentile(hindsight_log_probs, p)
+                              for _, p in difficulty_buckets]
+                hard_sol_log_probs = [logprob for logprob in hindsight_log_probs if logprob >= thresholds[0]]
+                mean_hard_sol_log_prob = np.mean(hard_sol_log_probs) if hard_sol_log_probs else 0
+                
             log_file.write(json.dumps({'iteration': i,
                                   'msg': f'Training on {len(examples)} examples.'}))
             log_file.write('\n')

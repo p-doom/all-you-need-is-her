@@ -120,7 +120,7 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
                 end_iter_time = time.time()
                 elapsed_time += end_iter_time - begin_iter_time
                 log.info('Time elapsed after iteration %d: %f', i, elapsed_time)
-                continue
+                break
 
             # 3- Train model on proofs and outcome of conjectures (easy, hard, timeout)
             # 3a- Look at all the success logprobs and compute the easy/hard threhsold.

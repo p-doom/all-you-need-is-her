@@ -7,6 +7,7 @@ import os
 import io
 import json
 import time
+from datetime import timedelta
 import random
 import yaml
 
@@ -114,10 +115,10 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
 
             # 2- Try to prove each of the conjectures
             examples = []
-            begin_iter_time = time.time()
+            begin_iter_time = time.perf_counter()
             student_results = prove_conjectures(agent, conjectures, theory, premises)
             if cfg.mcts_only:
-                end_iter_time = time.time()
+                end_iter_time = time.perf_counter()
                 elapsed_time += end_iter_time - begin_iter_time
                 log.info('Time elapsed after iteration %d: %f', i, elapsed_time)
                 break
@@ -170,13 +171,13 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
             # 3c- Train model on conjecturing and proof search examples.
             log.info(f"{len(examples)} accumulated training examples.")
             agent.train(examples=examples, final_goals=final_goals, ratio_proven=ratio_proven, mle_log=mle_log)
-            end_iter_time = time.time()
+            end_iter_time = time.perf_counter()
             val_loss, num_mcts_steps = get_val_loss(agent, final_goals_formatted, theory, premises)
             if val_loss != 10:
-                log.info('Found solution during validation loss computation! Time elapsed: %f', elapsed_time + time.time() - begin_iter_time)
+                log.info('Found solution during validation loss computation! Time elapsed: %f', timedelta(seconds=elapsed_time + time.perf_counter() - begin_iter_time))
 
             elapsed_time += end_iter_time - begin_iter_time
-            log.info('Time elapsed after iteration %d: %f', i, elapsed_time)
+            log.info('Time elapsed after iteration %d: %f', i, timedelta(seconds=elapsed_time))
             log.info('Validation loss: %f', val_loss)
             log.info('Number of MCTS steps to solve final goals: %s', num_mcts_steps)
 

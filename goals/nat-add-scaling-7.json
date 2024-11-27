@@ -1,8 +1,8 @@
 {
     "goals": [
         {
-            "name": "nat-add-scaling-4",
-            "theorem": "(= z (+ z (+ z (+ z (+ z z)))))",
+            "name": "nat-add-scaling-7",
+            "theorem": "(= z (+ z (+ z (+ z (+ z (+ z (+ z (+ z z))))))))",
             "solution": [
                 "S: <solved>\n???Y"
             ]

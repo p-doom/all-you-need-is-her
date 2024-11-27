@@ -173,6 +173,7 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
             agent.train(examples=examples, final_goals=final_goals, ratio_proven=ratio_proven, mle_log=mle_log)
             end_iter_time = time.perf_counter()
             val_loss, num_mcts_steps = get_val_loss(agent, final_goals_formatted, theory, premises)
+            # FIXME(m.mahajan): This should not be hardcoded
             if val_loss != 10:
                 log.info(f'Found solution during validation loss computation! Time elapsed: {timedelta(seconds=elapsed_time + time.perf_counter() - begin_iter_time)}')
 

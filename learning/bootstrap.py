@@ -6,7 +6,7 @@ import asyncio
 import os
 import io
 import json
-import datetime
+import time
 import random
 import yaml
 
@@ -97,6 +97,7 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
 
 
     with open('log.jsonl', 'w') as log_file:
+        elapsed_time = 0
         for i in range(start_iteration, cfg.agent.policy.total_iterations):
 
             # 1- Either use final goals or run conjecturing model
@@ -113,7 +114,13 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
 
             # 2- Try to prove each of the conjectures
             examples = []
+            begin_iter_time = time.time()
             student_results = prove_conjectures(agent, conjectures, theory, premises)
+            if cfg.mcts_only:
+                end_iter_time = time.time()
+                elapsed_time += end_iter_time - begin_iter_time
+                log.info('Time elapsed after iteration %d: %f', i, elapsed_time)
+                continue
 
             # 3- Train model on proofs and outcome of conjectures (easy, hard, timeout)
             # 3a- Look at all the success logprobs and compute the easy/hard threhsold.
@@ -121,10 +128,6 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
             ratio_proven = len(success_logprobs)/len(conjectures)
             log.info('%d out of %d conjectures proven. ratio = %f', 
                         len(success_logprobs), len(conjectures), ratio_proven)
-
-            if not success_logprobs and not cfg.skip_conjecturing:
-                log.warning('No solutions found in iteration %d - continuing to next iteration...', i)
-                continue
 
             # Add output of proving final goals to the list of proven conjectures
             student_results.extend(student_results_final)
@@ -167,7 +170,13 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
             # 3c- Train model on conjecturing and proof search examples.
             log.info(f"{len(examples)} accumulated training examples.")
             agent.train(examples=examples, final_goals=final_goals, ratio_proven=ratio_proven, mle_log=mle_log)
+            end_iter_time = time.time()
             val_loss, num_mcts_steps = get_val_loss(agent, final_goals_formatted, theory, premises)
+            if val_loss != 10:
+                log.info('Found solution during validation loss computation! Time elapsed: %f', elapsed_time + time.time() - begin_iter_time)
+
+            elapsed_time += end_iter_time - begin_iter_time
+            log.info('Time elapsed after iteration %d: %f', i, elapsed_time)
             log.info('Validation loss: %f', val_loss)
             log.info('Number of MCTS steps to solve final goals: %s', num_mcts_steps)
 

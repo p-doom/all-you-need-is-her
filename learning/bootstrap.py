@@ -120,7 +120,7 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
             if cfg.mcts_only:
                 end_iter_time = time.perf_counter()
                 elapsed_time += end_iter_time - begin_iter_time
-                log.info('Time elapsed after iteration %d: %f', i, elapsed_time)
+                log.info(f'Time elapsed after iteration {i}: {timedelta(seconds=elapsed_time)}')
                 break
 
             # 3- Train model on proofs and outcome of conjectures (easy, hard, timeout)
@@ -174,10 +174,10 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
             end_iter_time = time.perf_counter()
             val_loss, num_mcts_steps = get_val_loss(agent, final_goals_formatted, theory, premises)
             if val_loss != 10:
-                log.info('Found solution during validation loss computation! Time elapsed: %f', timedelta(seconds=elapsed_time + time.perf_counter() - begin_iter_time))
+                log.info(f'Found solution during validation loss computation! Time elapsed: {timedelta(seconds=elapsed_time + time.perf_counter() - begin_iter_time)}')
 
             elapsed_time += end_iter_time - begin_iter_time
-            log.info('Time elapsed after iteration %d: %f', i, timedelta(seconds=elapsed_time))
+            log.info(f'Time elapsed after iteration {i}: {timedelta(seconds=elapsed_time)}')
             log.info('Validation loss: %f', val_loss)
             log.info('Number of MCTS steps to solve final goals: %s', num_mcts_steps)
 

@@ -190,7 +190,7 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
             elapsed_time += end_iter_time - begin_iter_time
             log.info(f'Time elapsed after iteration {i}: {timedelta(seconds=elapsed_time)}')
             log.info('Validation loss: %f', val_loss)
-            log.info('Number of MCTS steps to solve final goals: %s', num_mcts_steps)
+            log.info('Number of MCTS steps to solve final goals (validation): %s', num_mcts_steps)
 
             final_goals_proven = [s for s in num_mcts_steps if s <= cfg.agent.max_mcts_nodes]
             log.info('Final goals proven: %d out of %d', len(final_goals_proven), len(final_goals))

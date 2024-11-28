@@ -119,6 +119,7 @@ async def teacher_loop(cfg: DictConfig, mle_log: MLELogger):
             examples = []
             begin_iter_time = time.perf_counter()
             student_results = prove_conjectures(agent, conjectures, theory, premises)
+            log.info(f'Took {[s.iterations for s in student_results]} steps to prove {len(conjectures)} conjecture(s).')
             if cfg.mcts_only:
                 end_iter_time = time.perf_counter()
                 elapsed_time += end_iter_time - begin_iter_time
